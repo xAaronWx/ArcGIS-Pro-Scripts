@@ -16,6 +16,7 @@ import arcpy
 import argparse
 import os
 
+
 def get_geodatabase_path(input_layer):
     """
     Gets the parent geodatabase of the layer
@@ -27,6 +28,7 @@ def get_geodatabase_path(input_layer):
         return workspace
     else:
         return os.path.dirname(workspace)
+
 
 def check_and_create_domains(geodatabase):
     """
@@ -46,7 +48,7 @@ def check_and_create_domains(geodatabase):
                 # check if cvs 0,1,2,4,5 are in the codedValues
                 values = [cv for cv in domain.codedValues]
                 if not set(set([0, 1, 2, 4, 5])).issubset(values):
-                    arcpy.AddIDMessage("ERROR",355)
+                    arcpy.AddIDMessage("ERROR", 355)
                     return
     else:
         # Add the domain and values
@@ -71,7 +73,7 @@ def check_and_create_domains(geodatabase):
     if 'ESRI_NUM_SATS_DOMAIN' in domain_names:
         if domain.name == "ESRI_NUM_SATS_DOMAIN":
             if domain.range[0] != 0 or domain.range[1] != 99:
-                arcpy.AddIDMessage("ERROR",355)
+                arcpy.AddIDMessage("ERROR", 355)
                 return
     else:
         # Add the domain and set the range
@@ -82,12 +84,13 @@ def check_and_create_domains(geodatabase):
                                       domain_type="RANGE",
                                       split_policy="DEFAULT",
                                       merge_policy="DEFAULT")
-        arcpy.SetValueForRangeDomain_management(geodatabase, "ESRI_NUM_SATS_DOMAIN", 0, 99)
+        arcpy.SetValueForRangeDomain_management(
+            geodatabase, "ESRI_NUM_SATS_DOMAIN", 0, 99)
     # Check if 'StationID" is a domain, if so check the range
     if 'ESRI_STATION_ID_DOMAIN' in domain_names:
         if domain.name == "ESRI_STATION_ID_DOMAIN":
             if domain.range[0] != 0 or domain.range[1] != 1023:
-                arcpy.AddIDMessage("ERROR",355)
+                arcpy.AddIDMessage("ERROR", 355)
                 return
     else:
         # Add the domain and set the range
@@ -98,14 +101,16 @@ def check_and_create_domains(geodatabase):
                                       domain_type="RANGE",
                                       split_policy="DEFAULT",
                                       merge_policy="DEFAULT")
-        arcpy.SetValueForRangeDomain_management(geodatabase, "ESRI_STATION_ID_DOMAIN", 0, 1023)
+        arcpy.SetValueForRangeDomain_management(
+            geodatabase, "ESRI_STATION_ID_DOMAIN", 0, 1023)
     if 'ESRI_POSITIONSOURCETYPE_DOMAIN' in domain_names:
         for domain in domains:
             if domain.name == 'ESRI_POSITIONSOURCETYPE_DOMAIN':
                 # check if cvs 0,1,2,3,4 are in the codedValues
                 values = [cv for cv in domain.codedValues]
                 if not set(set([0, 1, 2, 3, 4])).issubset(values):
-                    arcpy.AddError("ESRI_POSITIONSOURCETYPE_DOMAIN is missing a coded value pair.")
+                    arcpy.AddError(
+                        "ESRI_POSITIONSOURCETYPE_DOMAIN is missing a coded value pair.")
                     return
     else:
         # Add the domain and values
@@ -138,6 +143,7 @@ def check_and_create_domains(geodatabase):
                                                code="4",
                                                code_description="Network Location Provider")
 
+
 def add_gnss_fields(feature_layer):
     """
     This adds specific fields required for GPS units to
@@ -160,7 +166,8 @@ def add_gnss_fields(feature_layer):
         desc = arcpy.Describe(feature_layer)
         dataType = desc.dataType.lower()
         if dataType == "featurelayer":
-            dataType = arcpy.Describe(feature_layer).dataElement.dataType.lower()
+            dataType = arcpy.Describe(
+                feature_layer).dataElement.dataType.lower()
 
         # catch invalid inputs
         if dataType == "shapefile":
@@ -183,8 +190,8 @@ def add_gnss_fields(feature_layer):
         # Add the fields
 
         # Add GNSS metadata fields
-        existingFields = [field.name for field in arcpy.ListFields(feature_layer)]
-
+        existingFields = [
+            field.name for field in arcpy.ListFields(feature_layer)]
 
         if 'Clear_Flow' not in existingFields:
             arcpy.AddField_management(feature_layer,
@@ -258,7 +265,7 @@ def add_gnss_fields(feature_layer):
                                       field_type="SHORT",
                                       field_alias='Fix Type',
                                       field_is_nullable="NULLABLE",
-                                      field_domain = "ESRI_FIX_TYPE_DOMAIN"
+                                      field_domain="ESRI_FIX_TYPE_DOMAIN"
                                       )
 
         if 'ESRIGNSS_CORRECTIONAGE' not in existingFields:
@@ -275,7 +282,7 @@ def add_gnss_fields(feature_layer):
                                       field_type="SHORT",
                                       field_alias='Station ID',
                                       field_is_nullable="NULLABLE",
-                                      field_domain = "ESRI_STATION_ID_DOMAIN"
+                                      field_domain="ESRI_STATION_ID_DOMAIN"
                                       )
 
         if 'ESRIGNSS_NUMSATS' not in existingFields:
@@ -305,11 +312,11 @@ def add_gnss_fields(feature_layer):
 
         if 'ESRIGNSS_VDOP' not in existingFields:
             arcpy.AddField_management(feature_layer,
-                                  'ESRIGNSS_VDOP',
-                                  field_type="DOUBLE",
-                                  field_alias='VDOP',
-                                  field_is_nullable="NULLABLE"
-                                  )
+                                      'ESRIGNSS_VDOP',
+                                      field_type="DOUBLE",
+                                      field_alias='VDOP',
+                                      field_is_nullable="NULLABLE"
+                                      )
 
         if 'ESRIGNSS_DIRECTION' not in existingFields:
             arcpy.AddField_management(feature_layer,
@@ -370,30 +377,34 @@ def add_gnss_fields(feature_layer):
         # Update fields with Domains
 
         # Update GNSS metadata fields with Domains
-        domainFields = [field for field in arcpy.ListFields(feature_layer) if field.name == 'ESRIGNSS_FIXTYPE' or \
-                          field.name == 'ESRIGNSS_STATIONID' or field.name == 'ESRIGNSS_NUMSATS' or field.name == 'ESRIGNSS_POSITIONSOURCETYPE']
+        domainFields = [field for field in arcpy.ListFields(feature_layer) if field.name == 'ESRIGNSS_FIXTYPE' or
+                        field.name == 'ESRIGNSS_STATIONID' or field.name == 'ESRIGNSS_NUMSATS' or field.name == 'ESRIGNSS_POSITIONSOURCETYPE']
 
         for field in domainFields:
             if field.name == 'ESRIGNSS_FIXTYPE' and not field.domain:
-                arcpy.AssignDomainToField_management(feature_layer, field, 'ESRI_FIX_TYPE_DOMAIN')
+                arcpy.AssignDomainToField_management(
+                    feature_layer, field, 'ESRI_FIX_TYPE_DOMAIN')
                 continue
 
             if field.name == 'ESRIGNSS_STATIONID' and not field.domain:
-                arcpy.AssignDomainToField_management(feature_layer, field, 'ESRI_STATION_ID_DOMAIN')
+                arcpy.AssignDomainToField_management(
+                    feature_layer, field, 'ESRI_STATION_ID_DOMAIN')
                 continue
 
             if field.name == 'ESRIGNSS_NUMSATS' and not field.domain:
-                arcpy.AssignDomainToField_management(feature_layer, field, 'ESRI_NUM_SATS_DOMAIN')
+                arcpy.AssignDomainToField_management(
+                    feature_layer, field, 'ESRI_NUM_SATS_DOMAIN')
                 continue
 
             if field.name == 'ESRIGNSS_POSITIONSOURCETYPE' and not field.domain:
-                arcpy.AssignDomainToField_management(feature_layer, field, 'ESRI_POSITIONSOURCETYPE_DOMAIN')
+                arcpy.AssignDomainToField_management(
+                    feature_layer, field, 'ESRI_POSITIONSOURCETYPE_DOMAIN')
                 continue
-
 
     except Exception as e:
         arcpy.AddError("{}\n".format(e))
         return
+
 
 if __name__ == "__main__":
     """
@@ -404,7 +415,8 @@ if __name__ == "__main__":
         Example: python add_gps_fields "C:/temp/test.gdb/test" "C:/temp/test.gdb/test2"
     """
     parser = argparse.ArgumentParser("Add GPS Fields to Feature Layers")
-    parser.add_argument("layers", nargs='+', help="The layers to add fields to")
+    parser.add_argument("layers", nargs='+',
+                        help="The layers to add fields to")
     args = parser.parse_args()
     for layer in args.layers:
         add_gnss_fields(layer)
